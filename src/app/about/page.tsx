@@ -1,3 +1,4 @@
+import { Coffee } from "@/components/coffee";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -60,5 +61,6 @@ export default function About(): JSX.Element {
         </div>
       </div>
     </div>
+    <Coffee />
   </main>
 }

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { generate } from "./generate";
 import Image from "next/image";
+import { Coffee } from "@/components/coffee";
 
 interface Params {
   params: {
@@ -35,6 +36,7 @@ export default async function Result({params: {data}}: Params): Promise<JSX.Elem
           </div>
         </div>
       </div>
+      <Coffee />
     </main>
   )
 }
