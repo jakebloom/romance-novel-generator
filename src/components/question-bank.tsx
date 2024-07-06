@@ -38,7 +38,7 @@ export function QuestionBank({
           <div
             onClick={onClick(a)}
             key={idx}
-            className="px-4 w-[180px] aspect-[2] border border-blue/50 rounded-xl flex items-center justify-center backdrop-blur-3xl shadow-lg cursor-pointer">
+            className="px-4 sm:w-[180px] w-[150px] text-center aspect-[2] border border-blue/50 rounded-xl flex items-center justify-center backdrop-blur-3xl shadow-lg cursor-pointer">
             {a}
           </div>)
         }
