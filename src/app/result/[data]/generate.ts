@@ -17,6 +17,7 @@ function getUserPrompt(data: Record<string, string>): string {
   return `
 Write a funny, witty and engaging blurb for a romance novel with the following details:
 ${JSON.stringify(data)}
+The protagonist should be a woman and the love interest should be a man.
 
 The blurb should be formatted into a few paragraphs. Return the blurb as a valid JSON in the following format:
 {'blurb': [paragraph1, paragraph2, ...]}
