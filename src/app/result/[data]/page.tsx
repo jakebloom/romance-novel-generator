@@ -9,9 +9,7 @@ interface Params {
   }
 }
 
-export const config  = {
-  maxDuration: 60
-}
+export const maxDuration = 60;
 
 export default async function Result({params: {data}}: Params): Promise<JSX.Element> {
   const strData = Buffer.from(decodeURIComponent(data), "base64").toString("utf8");
