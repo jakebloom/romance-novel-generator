@@ -1,9 +1,16 @@
 import Groq from "groq-sdk";
+import OpenAI from "openai";
 
-const client = new Groq({ apiKey: process.env.GROQ_API_KEY })
-const MODEL = "llama3-70b-8192"
+const groqClient = new Groq({ apiKey: process.env.GROQ_API_KEY })
+const openaiClient = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+  project: process.env.OPENAI_PROJECT,
+  organization: process.env.OPENAI_ORG,
+});
 
-const SYSTEM_PROMPT = "You are an expert copywriter that produces blurbs for romance novels."
+const GROQ_MODEL = "llama3-70b-8192"
+
+const BLURB_SYSTEM_PROMPT = "You are an expert copywriter that produces blurbs for romance novels."
 
 function getUserPrompt(data: Record<string, string>): string {
   delete data["cover"]
@@ -16,27 +23,42 @@ The blurb should be formatted into a few paragraphs. Return the blurb as a valid
   `;
 }
 
+function getImagePrompt(style: string, data: Record<string, string>): string {
+  return `
+A ${style} cover of a romance novel featuring a ${data["protagonist_personality"]} young woman dressed as a ${data["protagonist_occupation"]} and a ${data["love_interest_personality"]} young man dressed as a ${data["love_interest_occupation"]}.
+  `;
+}
+
 interface GenerateResult {
   blurb: string[];
   image: string;
 }
 
 export async function generate(data: Record<string, string>): Promise<GenerateResult> {
-  const groqRes = await client.chat.completions.create({
-    model: MODEL,
-    max_tokens: 512,
-    response_format: {type: 'json_object'},
-    messages: [
-      {role: "system", content: SYSTEM_PROMPT},
-      {role: "user", content: getUserPrompt(data)},
-    ],
-  });
+  if (!process.env.PROD) {
+    return generateMock();
+  }
+
+  const style = data["cover"];
+
+  const [groqRes, openAiRes] = await Promise.all([
+    groqClient.chat.completions.create({
+      model: GROQ_MODEL,
+      max_tokens: 512,
+      response_format: {type: 'json_object'},
+      messages: [
+        {role: "system", content: BLURB_SYSTEM_PROMPT},
+        {role: "user", content: getUserPrompt(data)},
+      ],
+    }),
+    openaiClient.images.generate({ model: "dall-e-3", prompt: getImagePrompt(style, data)}),
+  ]);
 
   const content = groqRes.choices[0].message.content
 
   return {
     blurb: JSON.parse(content || "{}").blurb || "",
-    image: "",
+    image: openAiRes.data[0].url || "",
   }
 }
 
@@ -46,7 +68,7 @@ const MOCK_BLURB = [
   "When Sophia's medical expertise is required to treat Ryder's injured shoulder, their constant bickering and sarcastic banter can't hide the undeniable spark between them. As they work together to uncover the secrets of their families' long-standing feud, Sophia's icy exterior begins to thaw, and Ryder's protective instincts go into overdrive. Can these sworn enemies turn their animosity into something more? Or will their families' past tear them apart once and for all?",
 ]
 
-export async function generateMock(data: any): Promise<GenerateResult> {
+function generateMock(): GenerateResult {
   return {
     blurb: MOCK_BLURB,
     image: "https://loremflickr.com/1024/1024",
